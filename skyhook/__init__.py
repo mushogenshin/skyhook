@@ -3,7 +3,6 @@ logger = Logger()
 
 from . import modules
 from . import constants
-from . import client
 try:
     from . import server
 except:

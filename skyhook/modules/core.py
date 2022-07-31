@@ -1,5 +1,4 @@
 import importlib
-from .. import client
 
 
 def is_online():
@@ -9,6 +8,7 @@ def is_online():
     :return: True
     """
     return True
+
 
 def echo_message(message):
     print(message)
