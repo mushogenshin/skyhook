@@ -79,7 +79,8 @@ class MainThreadExecutor(QObject):
         :param parameters_dict: *dict* with parameters
         :return: None
         """
-        parameters_dict.pop(Constants.module, None)
+        if hasattr(parameters_dict, "pop"):
+            parameters_dict.pop(Constants.module, None)
         function = self.server.get_function_by_name(function_name)
         try:
             return_value = function(**parameters_dict)
@@ -453,6 +454,9 @@ def make_result_json(success, return_value, command):
     :param return_value:
     :return:
     """
+    # ensure `return_value` is of type `list`
+    return_value = [return_value] if type(
+        return_value) not in (list, tuple) else return_value
     result_json = {
         Results.time: datetime.now().strftime("%H:%M:%S"),
         Results.success: success,
