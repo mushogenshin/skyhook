@@ -10,10 +10,12 @@ except:
     pass
     # print("failed to import websockets/asyncio")
 
+
 class Client(object):
     """
     Base client from which all other Clients will inherit
     """
+
     def __init__(self):
         super(Client, self).__init__()
 
@@ -65,7 +67,6 @@ class Client(object):
         """
         response = self.execute("is_online", {})
         return response.get("Success")
-
 
     def execute(self, command, parameters={}):
         """
@@ -120,10 +121,12 @@ class Client(object):
 
         return payload
 
+
 class SubstancePainterClient(Client):
     """
     Custom client for Substance Painter
     """
+
     def __init__(self):
         super(SubstancePainterClient, self).__init__()
 
@@ -135,6 +138,7 @@ class BlenderClient(Client):
     """
     Custom client for Blender
     """
+
     def __init__(self):
         super(BlenderClient, self).__init__()
 
@@ -146,17 +150,19 @@ class MayaClient(Client):
     """
     Custom client for Maya
     """
-    def __init__(self):
+
+    def __init__(self, port=None):
         super(MayaClient, self).__init__()
 
         self.host_program = HostPrograms.maya
-        self.port = Ports.maya
+        self.port = Ports.maya if not port else port
 
 
 class HoudiniClient(Client):
     """
     Custom client for Houdini
     """
+
     def __init__(self):
         super(HoudiniClient, self).__init__()
 
@@ -174,13 +180,15 @@ class UnrealClient(Client):
     is loaded.
 
     """
+
     def __init__(self):
         super(UnrealClient, self).__init__()
 
         self.host_program = HostPrograms.unreal
         self.__command_object_path = "/Engine/PythonTypes.Default__SkyHookCommands"
         self.__server_command_object_path = "/Engine/PythonTypes.Default__SkyHookServerCommands"
-        self.__headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
+        self.__headers = {
+            'Content-type': 'application/json', 'Accept': 'text/plain'}
         self.port = Ports.unreal
 
     def execute(self, command, parameters={}, function=True, property=False):
@@ -193,17 +201,21 @@ class UnrealClient(Client):
         :param property: *bool* ignore, not used
         :return: *dict* of the response coming from Web Remote Control
         """
-        url = "http://%s:%s/remote/object/call" % (self.host_address, self.port)
+        url = "http://%s:%s/remote/object/call" % (
+            self.host_address, self.port)
 
         if command in dir(ServerCommands):
-            payload = self.__create_payload(command, parameters, self.__server_command_object_path)
+            payload = self.__create_payload(
+                command, parameters, self.__server_command_object_path)
             used_object_path = self.__server_command_object_path
         else:
-            payload = self.__create_payload(command, parameters, self.__command_object_path)
+            payload = self.__create_payload(
+                command, parameters, self.__command_object_path)
             used_object_path = self.__command_object_path
 
         try:
-            response = requests.put(url, json=payload, headers=self.__headers).json()
+            response = requests.put(
+                url, json=payload, headers=self.__headers).json()
         except requests.exceptions.ConnectionError:
             response = {"ReturnValue": False}
 

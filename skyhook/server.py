@@ -40,7 +40,8 @@ try:
     http.server.BaseHTTPRequestHandler.address_string = lambda x: x.client_address[0]
 except:
     # Python 2
-    __import__('BaseHTTPServer').BaseHTTPRequestHandler.address_string = lambda x: x.client_address[0]
+    __import__(
+        'BaseHTTPServer').BaseHTTPRequestHandler.address_string = lambda x: x.client_address[0]
 
 try:
     import websockets
@@ -62,6 +63,7 @@ class MainThreadExecutor(QObject):
     by emitting a signal that this class will catch. That way it can run bpy.ops code in the main thread instead of the
     server thread.
     """
+
     def __init__(self, server):
         super(MainThreadExecutor, self).__init__()
         self.server = server
@@ -145,12 +147,12 @@ class Server(QObject):
                 importlib.reload(module)
         return reload_module_names
 
-    def hotload_module(self, module_name, is_skyhook_module=True):
+    def hotload_module(self, module_name, is_skyhook_module=False):
         """
         Tries to load a module with module_name from skyhook.modules to be added to the server while it's running.
 
         :param module_name: *string* name of the module you want to load
-        :param is_skyhook_module: *bool* name of the module you want to load
+        :param is_skyhook_module: *bool* 
         :return: None
         """
         if isinstance(module_name, types.ModuleType):
@@ -161,7 +163,8 @@ class Server(QObject):
 
         try:
             if is_skyhook_module:
-                mod = importlib.import_module(".modules.%s" % module_name, package="skyhook")
+                mod = importlib.import_module(
+                    ".modules.%s" % module_name, package="skyhook")
             else:
                 mod = importlib.import_module(module_name)
 
@@ -195,7 +198,8 @@ class Server(QObject):
         :return: None
         """
         try:
-            simple_server = wsgiref.simple_server.make_server("127.0.0.1", self.port, self.__process_request)
+            simple_server = wsgiref.simple_server.make_server(
+                "127.0.0.1", self.port, self.__process_request)
             logger.info("Started skyhook on port: %s" % self.port)
             while self.__keep_running:
                 simple_server.timeout = 0.1
@@ -307,9 +311,11 @@ class Server(QObject):
         :return:
         """
         if function_name in dir(ServerCommands):
-            result_json = self.__process_server_command(function_name, parameters_dict)
+            result_json = self.__process_server_command(
+                function_name, parameters_dict)
         else:
-            result_json = self.__process_module_command(function_name, parameters_dict)
+            result_json = self.__process_module_command(
+                function_name, parameters_dict)
 
         self.executor_reply = None
         return [json.dumps(result_json).encode()]
@@ -327,39 +333,47 @@ class Server(QObject):
 
         if function_name == ServerCommands.SKY_SHUTDOWN:
             self.stop_listening()
-            result_json = make_result_json(True, "Server offline", ServerCommands.SKY_SHUTDOWN)
+            result_json = make_result_json(
+                True, "Server offline", ServerCommands.SKY_SHUTDOWN)
 
         elif function_name == ServerCommands.SKY_LS:
             functions = []
             for module in self.__loaded_modules:
-                functions.extend([func for func in dir(module) if not "__" in func or isinstance(func, types.FunctionType)])
-            result_json = make_result_json(True, functions, ServerCommands.SKY_LS)
+                functions.extend([func for func in dir(
+                    module) if not "__" in func or isinstance(func, types.FunctionType)])
+            result_json = make_result_json(
+                True, functions, ServerCommands.SKY_LS)
 
         elif function_name == ServerCommands.SKY_RELOAD_MODULES:
             reloaded_modules = self.reload_modules()
-            result_json = make_result_json(True, reloaded_modules, ServerCommands.SKY_RELOAD_MODULES)
+            result_json = make_result_json(
+                True, reloaded_modules, ServerCommands.SKY_RELOAD_MODULES)
 
         elif function_name == ServerCommands.SKY_HOTLOAD:
             modules = parameters_dict.get(Constants.module)
-            is_skyhook_module = parameters_dict.get(Constants.is_skyhook_module, True)
+            is_skyhook_module = parameters_dict.get(
+                Constants.is_skyhook_module, True)
 
             hotloaded_modules = []
             for module_name in modules:
                 try:
-                    self.hotload_module(module_name, is_skyhook_module=is_skyhook_module)
+                    self.hotload_module(
+                        module_name, is_skyhook_module=is_skyhook_module)
                     hotloaded_modules.append(module_name)
                 except:
                     logger.info(Errors.SERVER_COMMAND, module_name)
                     logger.info(traceback.format_exc())
 
-            result_json = make_result_json(True, hotloaded_modules, ServerCommands.SKY_HOTLOAD)
+            result_json = make_result_json(
+                True, hotloaded_modules, ServerCommands.SKY_HOTLOAD)
 
         elif function_name == ServerCommands.SKY_UNLOAD:
             modules = parameters_dict.get(Constants.module)
             for module in modules:
                 self.unload_modules(module)
 
-            result_json = make_result_json(True, [m.__name__ for m in self.__loaded_modules], ServerCommands.SKY_UNLOAD)
+            result_json = make_result_json(
+                True, [m.__name__ for m in self.__loaded_modules], ServerCommands.SKY_UNLOAD)
 
         elif function_name == ServerCommands.SKY_FUNCTION_HELP:
             function_name = parameters_dict.get("function_name")
@@ -374,7 +388,8 @@ class Server(QObject):
             if arg_spec.keywords is not None:
                 arg_spec_dict["packed_kwargs"] = "**%s" % arg_spec.keywords
 
-            result_json = make_result_json(True, arg_spec_dict, ServerCommands.SKY_FUNCTION_HELP)
+            result_json = make_result_json(
+                True, arg_spec_dict, ServerCommands.SKY_FUNCTION_HELP)
 
         logger.success("Executed %s" % function_name)
 
@@ -399,7 +414,8 @@ class Server(QObject):
             return self.executor_reply
 
         module = parameters_dict.get(Constants.module)
-        parameters_dict.pop(Constants.module, None) # remove module from the parameters, otherwise it gets passed to the function
+        # remove module from the parameters, otherwise it gets passed to the function
+        parameters_dict.pop(Constants.module, None)
         function = self.get_function_by_name(function_name, module)
 
         try:
@@ -457,7 +473,8 @@ def start_server_in_thread(host_program="", port=None, load_modules=[], echo_res
     :param echo_response: *bool* print the response the server is sending back
     :return: *QThread* and *Server*
     """
-    skyhook_server = Server(host_program=host_program, port=port, load_modules=load_modules, echo_response=echo_response)
+    skyhook_server = Server(host_program=host_program, port=port,
+                            load_modules=load_modules, echo_response=echo_response)
     thread_object = QThread()
     skyhook_server.is_terminated.connect(partial(__kill_thread, thread_object))
     skyhook_server.moveToThread(thread_object)
@@ -522,7 +539,8 @@ def start_blocking_server(host_program="", port=None, load_modules=[], echo_resp
     :param echo_response: *bool* print the response the server is sending back
     :return: *Server*
     """
-    skyhook_server = Server(host_program=host_program, port=port, load_modules=load_modules, echo_response=echo_response)
+    skyhook_server = Server(host_program=host_program, port=port,
+                            load_modules=load_modules, echo_response=echo_response)
     skyhook_server.start_listening()
     return skyhook_server
 
