@@ -454,6 +454,9 @@ def make_result_json(success, return_value, command):
     :param return_value:
     :return:
     """
+    # ensure `return_value` is str if it is None
+    if return_value is None:
+        return_value = ""
     # ensure `return_value` is of type `list`
     return_value = [return_value] if type(
         return_value) not in (list, tuple) else return_value
