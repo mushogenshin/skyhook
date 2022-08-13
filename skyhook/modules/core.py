@@ -10,9 +10,10 @@ def is_online():
     """
     return True
 
+
 def echo_message(message):
     print(message)
-    return "I printed: %s" % message
+    return "Echoing received message: %s" % message
 
 
 def run_python_script(script_path):
