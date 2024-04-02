@@ -15,11 +15,15 @@ from .logger import Logger
 logger = Logger()
 
 try:
-    from PySide2.QtCore import *
-    # logger.info("Using PySide2")
-except:
     from PySide.QtCore import *
     # logger.error("Using PySide")
+except ImportError:
+    try:
+        from PySide2.QtCore import *
+        # logger.info("Using PySide2")
+    except ImportError:
+        from PySide6.QtCore import *
+        # logger.info("Using PySide6")
 
 try:
     # Python 3
